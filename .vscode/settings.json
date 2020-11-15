@@ -1,0 +1,15 @@
+{
+    "restructuredtext.confPath": "${workspaceFolder}\\vendor\\doctrine\\orm\\docs\\en",
+    "sqltools.connections": [
+        {
+            "port": 8123,
+            "previewLimit": 50,
+            "driver": "ClickHouse",
+            "name": "testing",
+            "server": "64.225.73.246",
+            "database": "flux",
+            "username": "default",
+            "password": "KN9fSEJv"
+        }
+    ]
+}
