@@ -14,7 +14,6 @@ body {
   top: 0;
   left: 0;
   background-color: #111;
-  overflow-x: hidden;
   padding-top: 65px;
 }
 
@@ -57,24 +56,19 @@ body {
 </head>
 <body>
 <div class="sidenav">
-  <div class="dropdown" style="padding-bottom:10px;">
-    <button class="btn btn-secondary dropdown-toggle" style="width:100%" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Repositories
-    </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" href="#">Action</a>
-        <a class="dropdown-item" href="#">Another action</a>
-        <a class="dropdown-item" href="#">Something else here</a>
-    </div>
+  <div class="input-group mb-3">
+    <select class="selectrepository" multiple title="Repositories">
+      {% for repository in repositories %}
+        <option>{{ repository.nom }}</option>
+      {% endfor %}
+    </select>
   </div>
-  <div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" style="width:100%" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Branches
-    </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        <a class="dropdown-item" href="#">Action</a>
-        <a class="dropdown-item" href="#">Another action</a>
-        <a class="dropdown-item" href="#">Something else here</a>
+  <div class="input-group mb-3">
+    <select class="selectrepository" multiple title="Branches">
+      {% for repository in repositories %}
+        <option>{{ repository.nom }}</option>
+      {% endfor %}
+    </select>
     </div>
   </div>
 </div>
@@ -83,6 +77,9 @@ body {
 
 </div>
 </body>
+<script>
+  $('.selectrepository').selectpicker();
+</script>
 {% endblock %}
 
 

@@ -16,30 +16,18 @@ class HomeController extends AbstractController
     private $repository;
     private $em;
 
-    public function __construct(RepositoriesRepository $repository, EntityManagerInterface $em)
+    public function __construct(RepositoriesRepository $repository)
     {
         $this->repository = $repository;
-        $this->em = $em;
     }
     /**
-     * @Route("/") 
+     * @Route("/")
+     * @return Response
      */
     public function home(): Response
     {
-        // $repositories = new Repositories();
-        // $repositories->seturl("https://github.com/wizardjedi/php-git.git")
-        //     ->setNom("php-git");
+        $repos = $this->repository->findAll();
 
-        // $em = $this->getDoctrine()->getManager();
-        // $em->persist($repositories);
-        // $em->flush();
-
-        $repo = $this->repository->findAll();
-        $repo[0]->setDescription("test");
-
-        $this->em->flush();
-
-
-        return $this->render('home/home.html.twig');
+        return $this->render('home/home.html.twig', ['repositories' => $repos]);
     }
 }
