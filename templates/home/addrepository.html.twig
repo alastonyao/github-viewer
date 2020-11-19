@@ -1,23 +1,29 @@
 <li class="nav-item active">
-	<form action="/repository/add" method="POST">
-		<div class="input-group input-group-sm mb-3">
-			<div class="input-group-prepend">
-				<span class="input-group-text" id="inputGroup-sizing-sm">URL</span>
+			<div class="input-group input-group-sm mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" id="inputGroup-sizing-sm">
+						URL
+					</span>
+				</div>
+				<input type="text" id="url-repo" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
 			</div>
-			<input type="text" name="url" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-		</div>
-	</li>
-</li>
-<li class="nav-item active">
-	<div class="input-group input-group-sm mb-3" style="padding-right: 9px;">
-		<div class="input-group-prepend">
-			<span class="input-group-text" id="inputGroup-sizing-sm">User and password</span>
-		</div>
-		<input type="text" name="user" class="form-control">
-		<input type="text" name="password" class="form-control">
-	</div>
-</li>
-<li
-	class="nav-item active">
-	{# <a class="nav-link" href="#">Clone Repository <span class="sr-only">(current)</span></a> #}
-	<input type="submit" class="btn btn-light" value="Clone Repository"></li></button></li></form></li>
+		</li>
+		<li class="nav-item active">
+			<div class="input-group input-group-sm mb-3" style="padding-right: 9px;">
+				<div class="input-group-prepend">
+					<span class="input-group-text" id="inputGroup-sizing-sm">
+						User and password
+					</span>
+				</div>
+				<input type="text" id="user-repo" class="form-control">
+				<input type="text" id="password-repo" class="form-control">
+			</div>
+		</li>
+		<li
+			class="nav-item active">
+
+			{# <a class="nav-link" href="#">Clone Repository <span class="sr-only">(current)</span></a> #}
+			<button class="btn btn-light" id="clone-repo">Clone Repository</button>
+		</li>
+	
+

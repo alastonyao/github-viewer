@@ -5,28 +5,38 @@
 		body {
 			font-family: "Lato", sans-serif;
 		}
+		.dropdown-menu {
+			z-index: 1;
+		}
 
 		.sidenav {
 			height: 100%;
-			width: 160px;
+			width: 220px;
 			position: fixed;
-			z-index: 1;
-			top: 0;
+			top: 63px;
 			left: 0;
 			background-color: #111;
-			padding-top: 65px;
 		}
 
 		.sidenav2 {
 			height: 100%;
-			width: 220px;
+			width: 250px;
 			position: fixed;
-			z-index: 1;
-			top: 0;
-			left: 160px;
+			top: 63px;
+			left: 220px;
 			background-color: white;
 			overflow-x: hidden;
-			padding-top: 65px;
+			border-right-style: groove;
+		}
+
+		.sidenav3 {
+			height: 100%;
+			width: 100%;
+			position: fixed;
+			top: 63px;
+			left: 470px;
+			background-color: white;
+			overflow-x: hidden;
 			border-right-style: groove;
 		}
 
@@ -59,45 +69,159 @@
 	</style>
 </head>
 <body>
-	<div class="sidenav">
-		<div class="input-group mb-3">
-			<select class="selectpicker" id="select-repository" data-live-search="true" title="Repositories">
-				{% for repository in repositories %}
-					<option>{{ repository.nom }}</option>
-				{% endfor %}
-			</select>
-		</div>
-		<div class="input-group mb-3">
-			<select class="selectpicker" id="select-branch" data-live-search="true" title="Branches"></select>
-		</div>
-	</div>
-</body></div><div class="sidenav2"></div></body>
+			<div class="row">
+				<div class="sidenav" class="col-3">
+					<div class="input-group mb-3">
+						<select class="selectpicker" id="select-repository" data-live-search="true" title="Repositories">
+							{% for repository in repositories %}
+								<option value={{ repository.id }}>
+									{{ repository.name }}
+								</option>
+							{% endfor %}
+						</select>
+						<img src="/images/200.gif" id="img-loading" width=120 alt="loading" style="display:none;">
+					</div>
+				</div>
+			</div>
+			<div class="sidenav2" class="col-3">
+				<div class="row">
+					<div class="col-12">
+						<nav class="navbar row" style="background-color: lightslategray;justify-content: unset;">
+							<div class="navbar-brand col-2" style="color:white;">
+								Branches
+							</div>
+						</nav>
+						<div class="list-group" id="list-tab-branches" role="tablist"></div>
+					</div>
+				</div>
+			</div>
+			<div class="sidenav3">
+				<nav class="navbar row" style="background-color: darkgrey;justify-content: unset;">
+					<div class="navbar-brand col-2" style="color:white;">
+						Commits
+					</div>
+				</nav>
+				<div class="list-group col-12" id="list-commit">
+					
+				</div>
+			</div>
+		</body>
+
 <script>
+var commits = [];
 	$(document).ready(function() 
 	{ 
 		$("#select-repository").change(function (event) 
-		{ 
+		{ 	
+			$("#img-loading").show();
+			var repo = $("#select-repository").val();
 			$.ajax({ 
-				url: '/branches/comboBox',
+				url: '/branches/list',
             	type: 'POST',
             	datatype: 'json',
             	async: true,
+				data: {"idRepo": repo},
             	
 				success: function (data, status) { 
-					var newBranches = '';
-					for (i = 0;i < data.length;i++) {
-						$('#select-branch').append($('<option>', { value : data[i]['name'] })
-          .text(data[i]['name']));;
-					} 
-					$('#select-branch').selectpicker('refresh');
+				$(".list-group-item-branch").remove();	
+				$(".list-group-item-repo").remove();
+				for (i = 0 ; i < data.length; i++)
+				{
+					if (data[i]['name'].indexOf('HEAD') == -1)
+					{
+						$("#list-tab-branches").append('<a class="list-group-item list-group-item-branch list-group-item-action" id="' + data[i]['name'] +'" data-toggle="list" href="#list-home" role="tab" aria-controls="home">' + data[i]['name'] + ' </a>');
+					}
+				}
+				$("#img-loading").hide();
 				}, 
 				error: function (xhr, textStatus, errorThrown) { 
-					alert('Ajax request failed.');
+					$("#img-loading").hide();
+					console.log('Ajax request failed. /Commit/getAll');
 					}
 				}) 
 			})
+			$("#list-tab-branches").click(function (event) 
+			{
+				$("#img-loading").show();
+				var repo = $("#select-repository").val();
+				var nameBranch =  event.target.id;
+				$.ajax({ 
+				url: '/Commit/getAll',
+            	type: 'POST',
+            	datatype: 'json',
+            	async: true,
+				data: {"idRepo": repo,"nameBranch": nameBranch},
+            	
+				success: function (data, status) { 
+				$(".list-group-item-repo").remove();
+				
+				for (i = 0 ; i < data.length; i++)
+				{
+					
+					$("#list-commit").append(getHTMLListRepos(data[i]));
+				}
+				$("#img-loading").hide();
+				}, 
+				error: function (xhr, textStatus, errorThrown) { 
+					$("#img-loading").hide();
+					console.log('Ajax request failed. /Commit/getAll');
+					}
+				}) 
+			});
+			$("#clone-repo").click(function (event)
+			{
+				$("#img-loading").show();
+				var user = $('#user-repo').val();
+				var password = $('#password-repo').val();
+				var url = $('#url-repo').val();
+				$.ajax({
+					url:'/repository/add',
+					type: 'POST',
+					datatype: 'json',
+					async: true,
+					data: {'user':user,'password':password,'url':url},
+
+					success: function(data,status) {
+						for (i = 0 ; i < data.length ; i++)
+						{
+							$('#select-repo').append($('<option>', {
+								value: data[i]['id'],
+								text: data[i]['name']
+							}));
+						}
+						$("#img-loading").hide();
+					},
+					error: function (xhr, textStatus, errorThrown) { 
+						$("#img-loading").hide();
+						console.log('Ajax request failed. /repository/add');
+					}
+				})
+			})
 			$('.selectpicker').selectpicker(); 
 		}) 
-	
+	function getHTMLListRepos(data)
+	{
+		var listRepos = '';
+		listRepos += '';
+		listRepos += '<a href="#" class="list-group-item list-group-item-repo list-group-item-action flex-column align-items-start">';
+		listRepos += '		<div class="d-flex w-100 justify-content-between">';
+		listRepos += '				<h5 class="mb-1">';
+		listRepos += '				<input type="checkbox" class="form-check-input" id="exampleCheck1">';
+		listRepos += 					'Subject :' + data['subject'];
+		listRepos += '				</h5>';
+		listRepos += '				</div>';
+		listRepos += '				<p class="mb-1">';
+		listRepos += 					'Message :' + data['message'];
+		listRepos += '				</p>';
+		listRepos += '				<small class="text-muted">';
+		listRepos += 					'Author :' + data['author'];
+		listRepos += '				</small>';
+		listRepos += '				<small class="text-muted" style="display: flow-root;">';
+		listRepos += 					'Date :' + data['date'];
+		listRepos += '					</small>';
+		listRepos += '			</a>';
+
+		return listRepos;
+	}
 </script> 
 {% endblock %}
