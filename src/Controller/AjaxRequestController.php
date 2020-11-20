@@ -56,8 +56,8 @@ class AjaxRequestController extends AbstractController
     }
 
     /**
-     * Undocumented function
-     * @Route("/Commit/getAll")
+     *
+     * @Route("/commit/getAll")
      * @param Request $request
      * @param RepositoriesRepository $repositoryManager
      * @return void
@@ -83,6 +83,57 @@ class AjaxRequestController extends AbstractController
         }
     }
 
+
+    /**
+     * 
+     * @Route("/commit/delete")
+     * @param Request $request
+     * @return void
+     */
+    public function deleteCommitBulk(Request $request,CommitsRepository $commitManager,RepositoriesRepository $repositoryManager)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        if (isset($request->request)) {
+            $commitsTodelete = $request->request->get("commitsTodelete");
+            $nameBranch = ($request->request->get("currentBranch"));
+            $idRepo = ($request->request->get("idRepo"));
+
+            $myRepository = $repositoryManager->find($idRepo);
+
+            for($i = 0 ; $i < count($commitsTodelete) ; $i++)
+            {
+                $commit = $commitManager->findOneBy(['commitId' => $commitsTodelete[$i]]);
+                $commit->setIsDelete(true);
+
+                $em->persist($commit);
+            }
+            $em->flush();
+
+            $commits = $commitManager->findAllcommitByUrlRepoNoDeletedBranch($myRepository->getUrl(),$nameBranch);
+            foreach($commits as $commit)
+            {
+                $data = $this->getFormatDataCommit($commit);
+
+                $allCommits[] = $data;
+            }
+
+            $jsonData = new JsonResponse($allCommits); 
+            return $jsonData;
+        } else {
+            return $this->render('home/home.html.twig');
+        }
+    }
+
+    /**
+     * 
+     *
+     * @param [type] $gitRepo
+     * @param string $nameBranch
+     * @param CommitsRepository $commitManager
+     * @param [type] $repo
+     * @return void
+     */
     private function getallCommitSandInsertNewCommitInDb($gitRepo,$nameBranch,CommitsRepository $commitManager,$repo)
     {
         $commitIds = $gitRepo->getAllCommitIdsForBranch($nameBranch);
@@ -93,17 +144,11 @@ class AjaxRequestController extends AbstractController
             $commit = $commitManager->findOneBy(['commitId' => $commitId]);
             if ($commit !== null && $commit->getIsDelete() === false)
             {
-                $data = array(
-                    'commit' => $commitId,
-                    'subject' => $commit->getSubject(),
-                    'message' => $commit->getMessage(),
-                    'author' => $commit->getAuthor(),
-                    'date' => $commit->getDate(),
-                );
+                $data = $this->getFormatDataCommit($commit);
 
                 $allCommits[] = $data;
                 
-            } else {
+            } else if ($commit == null) {
                 $commit = $gitRepo->getCommitData($commitId);
                 $allCommits[] = $commit;
                 $newCommit = new Commits();
@@ -117,21 +162,29 @@ class AjaxRequestController extends AbstractController
                 ->setIsDelete(false);
 
                 $em->persist($newCommit);
-
-                $data = array(
-                    'commit' => $commitId,
-                    'subject' => $commit['subject'],
-                    'message' => $commit['message'],
-                    'author' => $commit['author'],
-                    'date' => $commit['date'],
-                );
-
-                $allCommits[] = $data;
+                
             }
         }
-
         $em->flush();
 
         return $allCommits;
+    }
+
+
+    /**
+     * 
+     *
+     * @param Commits $commit
+     * @return void
+     */
+    private function getFormatDataCommit(Commits $commit)
+    {
+        return $data = array(
+            'commit' => $commit->getCommitId(),
+            'subject' => $commit->getSubject(),
+            'message' => $commit->getMessage(),
+            'author' => $commit->getAuthor(),
+            'date' => $commit->getDate(),
+        );
     }
 }

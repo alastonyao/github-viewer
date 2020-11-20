@@ -26,7 +26,7 @@ class AddRepositoryController extends AbstractController
         
         if (isset($request->request)) {
 
-            $this->createRepository($request,$commitManager);
+            $this->createRepository($request,$repository ,$commitManager );
             $repos = $repository->findAll();
 
             foreach($repos as $repo)
@@ -47,10 +47,11 @@ class AddRepositoryController extends AbstractController
     /**
      * @param Request $request
      */
-    private function createRepository(Request $request, CommitsRepository $commitManager)
+    private function createRepository(Request $request,RepositoriesRepository $repository, CommitsRepository $commitManager)
     {
         $result = '';
         $url = $request->request->get("url");
+        $em = $this->getDoctrine()->getManager();
 
         if ($url !== '')
         {        
@@ -59,15 +60,19 @@ class AddRepositoryController extends AbstractController
             $myDate = new DateTime();
             $folder = "C:\\wamp64\\www\\gitrepoviewer-alas\\temp\\gitClone" .  $myDate->format("u");
     
-            $repo = new Repositories();
-            $repo->setName(basename($url, ".git"))
-                ->setPassword($password)
-                ->setPath($folder)
-                ->seturl($url)
-                ->setUser($user);
-    
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($repo);
+            $repo = $repository->findOneBy(['url' => $url]);
+            if ($repo == null)
+            {
+                $repo = new Repositories();
+                $repo->setName(basename($url, ".git"))
+                    ->setPassword($password)
+                    ->setPath($folder)
+                    ->seturl($url)
+                    ->setUser($user);
+        
+                
+                $em->persist($repo);
+            }
             
             $this->updateOldCommitdeleted($repo->getUrl(),$commitManager,$em);
             $em->flush();
@@ -76,20 +81,6 @@ class AddRepositoryController extends AbstractController
         }
 
         return $result;
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param Repositories $myRepository
-     * @return Array
-     */
-    private static function getAllBrancheFromRepo(Repositories $myRepository, CommitsRepository $commitManager): array
-    {
-        $gitRepo = new GitRepository($myRepository->getPath());
-        $branches = $gitRepo->getBranches();
-
-        return $branches;
     }
 
     private function updateOldCommitdeleted($urlRepo,CommitsRepository $commitManager,ObjectManager $em)

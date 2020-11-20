@@ -36,6 +36,16 @@ class CommitsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findAllcommitByUrlRepoNoDeletedBranch($urlRepo,$nameBranch)
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.urlRepo = :val AND c.nameBranch = :val1 AND c.isDelete = 0')
+            ->setParameter('val', $urlRepo)
+            ->setParameter('val1',$nameBranch)
+            ->getQuery()
+            ->getResult();
+    }
 }
     
 
