@@ -46,6 +46,32 @@ class CommitsRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function deleteCommit($idCommit)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+        
+        $sql = "UPDATE commits SET is_delete = 1 WHERE id = " .  $idCommit . "";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        
+    }
+
+    public function getOneCommit($idCommit)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT * FROM commits WHERE id = " .  $idCommit . "";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetchAll();
+
+        return $result;
+    }
 }
     
 

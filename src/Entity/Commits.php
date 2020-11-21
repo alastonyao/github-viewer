@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\CommitsRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Boolean;
 
@@ -11,6 +12,18 @@ use phpDocumentor\Reflection\Types\Boolean;
  */
 class Commits
 {
+
+    /**
+     * 
+     *
+     * @param EntityManagerInterface $em
+     * @return void
+     */
+    public static function getRepository(EntityManagerInterface $em)
+    {
+        return $em->getRepository(__CLASS__);
+    }   
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

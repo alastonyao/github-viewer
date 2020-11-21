@@ -79,7 +79,7 @@ class AjaxRequestController extends AbstractController
             $jsonData = new JsonResponse($jsonData); 
             return $jsonData;
         } else {
-            return $this->render('home/home.html.twig');
+            return Response::HTTP_NOT_ACCEPTABLE;
         }
     }
 
@@ -96,8 +96,8 @@ class AjaxRequestController extends AbstractController
 
         if (isset($request->request)) {
             $commitsTodelete = $request->request->get("commitsTodelete");
-            $nameBranch = ($request->request->get("currentBranch"));
-            $idRepo = ($request->request->get("idRepo"));
+            $nameBranch = $request->request->get("currentBranch");
+            $idRepo = $request->request->get("idRepo");
 
             $myRepository = $repositoryManager->find($idRepo);
 
@@ -173,7 +173,6 @@ class AjaxRequestController extends AbstractController
 
     /**
      * 
-     *
      * @param Commits $commit
      * @return void
      */

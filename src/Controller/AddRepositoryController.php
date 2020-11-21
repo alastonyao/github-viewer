@@ -7,90 +7,133 @@ use App\Repository\CommitsRepository;
 use App\Repository\RepositoriesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\component\httpfoundation\Response;
 use Cz\Git\GitRepository;
-use DateTime;
 use Doctrine\Persistence\ObjectManager;
+use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class AddRepositoryController extends AbstractController
 {
 
-    
     /**
      * @Route("/repository/add",methods={"POST"} )
      */
     public function addRepo(Request $request, RepositoriesRepository $repository, CommitsRepository $commitManager): Response
     {
-        
-        if (isset($request->request)) {
-
-            $this->createRepository($request,$repository ,$commitManager );
-            $repos = $repository->findAll();
-
-            foreach($repos as $repo)
-            {
-                $data[] = array(
-                    'name' => $repo->getName(),
-                    'id' => $repo->getId()
-                );
+        try {
+            $bFromAPIRest = $request->request->get("bapirest") ? $request->request->get("bapirest") : false;
+            if (isset($request->request)) {
+            
+                $repo = $this->createRepository($request, $repository, $commitManager);
+                if ($repo == false)
+                {
+                    return Response::HTTP_NOT_ACCEPTABLE;
+                }
+                if ($bFromAPIRest === false ) {
+                    $repos = $repository->findAll();
+    
+                    foreach ($repos as $repo) {
+                        $data[] = array(
+                            'name' => $repo->getName(),
+                            'id' => $repo->getId()
+                        );
+                    }
+                } else {
+                    $data[] = array(
+                        'name' => $repo->getName(),
+                        'url' => $repo->getUrl(),
+                        'description' => $repo->getDescription()
+                    );
+                }
+    
+                return $data = new JsonResponse($data);
+            } else {
+                return Response::HTTP_NOT_ACCEPTABLE;
+                
             }
-
-            return $data = new JsonResponse($data); 
+        } catch (\Throwable $th) {
+            return Response::HTTP_NOT_ACCEPTABLE;
         }
-        else{
-            return $this->render('home/home.html.twig');
-        }        
+        
     }
 
     /**
-     * @param Request $request
+     * @Route("/repository/list",methods={"GET"} )
      */
-    private function createRepository(Request $request,RepositoriesRepository $repository, CommitsRepository $commitManager)
+    public function listingRepository(RepositoriesRepository $repository) : Response
     {
-        $result = '';
-        $url = $request->request->get("url");
-        $em = $this->getDoctrine()->getManager();
-
-        if ($url !== '')
-        {        
-            $user = $request->request->get("user");
-            $password = $request->request->get("password");
-            $myDate = new DateTime();
-            $folder = "C:\\wamp64\\www\\gitrepoviewer-alas\\temp\\gitClone" .  $myDate->format("u");
-    
-            $repo = $repository->findOneBy(['url' => $url]);
-            if ($repo == null)
-            {
-                $repo = new Repositories();
-                $repo->setName(basename($url, ".git"))
-                    ->setPassword($password)
-                    ->setPath($folder)
-                    ->seturl($url)
-                    ->setUser($user);
+        try {
+            $repos = $repository->findAll();
+        $data = [];
         
-                
-                $em->persist($repo);
-            }
-            
-            $this->updateOldCommitdeleted($repo->getUrl(),$commitManager,$em);
-            $em->flush();
-
-            $result = GitRepository::cloneRepository($url, $folder);
+        foreach ($repos as $repo) {
+            $data[] = array(
+                'name' => $repo->getName(),
+                'url' => $repo->getUrl(),
+                'description' => $repo->getDescription()
+            );
         }
-
-        return $result;
+        return $data = new JsonResponse($data);
+        } catch (\Throwable $th) {
+            return Response::HTTP_NOT_ACCEPTABLE;
+        }
+        
     }
 
-    private function updateOldCommitdeleted($urlRepo,CommitsRepository $commitManager,ObjectManager $em)
+    /**
+     * @Route("/repository/delete",methods={"POST"} )
+     */
+    public function deleteRepository(Request $request,RepositoriesRepository $repository) : Response
     {
-        $commits = $commitManager->findAllCommitByUrlRepo($urlRepo);
-        foreach($commits as $commit)
-        {
-            $commit->setIsDelete(false);
-            $em->persist($commit);
-        }
 
+        try {
+            $data = [];
+
+        if (isset($request->request)) {
+            $em = $this->getDoctrine()->getManager();
+            $url = $request->request->get("url") ? $request->request->get("url") : '';
+            if ($url !== '')
+            {
+                $repo = $repository->findOneBy(['url' => $url]);
+                $em->remove($repo);
+
+                $em->flush();
+                $data[] = array(
+                    'Result' => "Delete Successful");
+            }
+            else{
+                $data[] = array(
+                    'Result' => "please give a valid url");
+            }
+            
+        }
+        
+        return $data = new JsonResponse($data);
+        } catch (\Throwable $th) {
+            return Response::HTTP_NOT_ACCEPTABLE;
+        }
+        
+    }
+
+
+    private function createRepository(Request $request, RepositoriesRepository $repository, CommitsRepository $commitManager)
+    {
+
+        $url = $request->request->get("url");
+        if ($url !== '') {
+            $user = $request->request->get("user") ? $request->request->get("user") : "";
+            $password = $request->request->get("password") ? $request->request->get("password") : "";
+            $pathrepo = $this->getParameter('app.pathrepo');
+
+            $repo = $repository->saveRepo($url, $pathrepo, $password, $user);
+
+            if (!file_exists($repo->getPath())) {
+                GitRepository::cloneRepository($url, $repo->getPath());
+            }
+            return $repo;
+        }
+        return false;
     }
 }
