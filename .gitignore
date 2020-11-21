@@ -6,7 +6,27 @@
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
-/vendor/
+/vendor/amphp/
+/vendor/bin/
+/vendor/cpliakas/
+/vendor/daverandom/
+/vendor/doctrine/
+/vendor/egulias/
+/vendor/kelunik/
+/vendor/league/
+/vendor/monolog/
+/vendor/nette/
+/vendor/nikic/
+/vendor/ocramius/
+/vendor/phpdocumentor/
+/vendor/psr/
+/vendor/sensio/
+/vendor/symfony/
+/vendor/twig/
+/vendor/webmozart/
+/vendor/zendframework/
+/vendor/autoload.php
+/vendor/composer/
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###
