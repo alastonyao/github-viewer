@@ -35,3 +35,6 @@
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
 temp
+
+/.idea
+/.vscode
